@@ -1,0 +1,19 @@
+﻿<Window x:Class="TestExam.Windows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TestExam.Windows"
+        mc:Ignorable="d"
+        Title="MainWindow" MinHeight="660" MinWidth="1250" Icon="../Resources/icon.ico">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Image Source="../Resources/logo.png" HorizontalAlignment="Left"/>
+        <TextBlock Text="Серебряный сервиз" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30"/>
+        <Grid Background="#a4bded" Panel.ZIndex="-2"/>
+        <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" Grid.Row="1"/>
+    </Grid>
+</Window>
