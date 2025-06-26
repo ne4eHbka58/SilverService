@@ -27,16 +27,19 @@ namespace TestExam.Windows
             InitializeComponent();
         }
 
+        // Переход к регистрации
         private void GoToRegistration(object sender, MouseButtonEventArgs e)
         {
             Session.MainFrame.Navigate(new RegistrationPage());
         }
 
+        // Гостевой просмотр каталога
         private void GuestView(object sender, MouseButtonEventArgs e)
         {
             Session.MainFrame?.Navigate(new CatalogPage());
         }
 
+        // Вход
         private void SignIn(object sender, RoutedEventArgs e)
         {
             if (LoginBox.Text == null || PasswordBox.Password == null)
@@ -60,8 +63,7 @@ namespace TestExam.Windows
             }
             else
             {
-                LoginBox.Text = hashedPassword;
-                MessageBox.Show("Неверный пароль", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Неверный логин или пароль", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

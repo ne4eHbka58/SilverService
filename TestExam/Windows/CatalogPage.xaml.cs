@@ -33,9 +33,10 @@ namespace TestExam.Windows
         }
 
         private List<Product> _products; 
-        private List<Product> _sortedProducts;
+        private List<Product> _sortedOrders;
         private readonly int maxCountEntries; // Максимальное количество записей в таблице
         private string _countEntries; 
+        
         public string CountEntries // Свойство для отображения количества найденых записей
         {
             get
@@ -49,6 +50,21 @@ namespace TestExam.Windows
             }
         }
         public Category SelectedCategory { get; set; } // Свойство для корректного отображения категорий
+
+        // Свойство для выключения управляющих элементов
+        private bool _isAdmin = true;
+        public bool IsAdmin
+        {
+            get 
+            { 
+                return _isAdmin; 
+            } 
+            set
+            {
+                _isAdmin = value;
+                OnPropertyChanged("IsAdmin");
+            }
+        }
         public CatalogPage()
         {
             InitializeComponent();
@@ -60,6 +76,18 @@ namespace TestExam.Windows
 
             this.DataContext = this;
             
+            // Если роль пользователя не админ - то скрываем управляющие кнопки
+            if (Session.User == null || Session.User.UserRole != 1)
+            {
+                IsAdmin = false;
+                //AddNewBtn.IsEnabled = false;
+                //AddNewBtn.Visibility = Visibility.Hidden;
+                //RemoveBtn.IsEnabled = false;
+                //RemoveBtn.Visibility = Visibility.Hidden;
+                //RedactBtn.IsEnabled = false;
+                //RedactBtn.Visibility = Visibility.Hidden;
+            }
+
             // Настройки для гостевого просмотра
             if (Session.User == null) 
             {
@@ -70,13 +98,21 @@ namespace TestExam.Windows
             }
             else // Выводим данные пользователя
             {
-                FIO.Text = $"{Session.User.UserSurname}\n{Session.User.UserName}\n{Session.User.UserPatronymic}";
+                if (string.IsNullOrEmpty(Session.User.UserPatronymic))
+                {
+                    FIO.Text = $"{Session.User.UserSurname}\n{Session.User.UserName}";
+                }
+                else
+                {
+                    FIO.Text = $"{Session.User.UserSurname}\n{Session.User.UserName}\n{Session.User.UserPatronymic}";
+                }
             }
 
             // Выводим товары
             _products = Trades.GetContext().Product.ToList();
             maxCountEntries = _products.Count;
             lvProducts.ItemsSource = _products;
+
 
             // Настройки комбобокса категорий
             List<Category> _categories = Trades.GetContext().Category.ToList();
@@ -98,6 +134,54 @@ namespace TestExam.Windows
             Session.MainFrame.Navigate(new AuthorizationPage());
         }
 
+        // Функция для перехода к заказам пользователя
+        private void GoToOrders(object sender, RoutedEventArgs e)
+        {
+            Session.MainFrame.Navigate(new OrdersPage());
+        }
+
+        // Функция для перехода к форме создания товара
+        private void GoToAddProduct(object sender, RoutedEventArgs e)
+        {
+            Session.MainFrame.Navigate(new AddProductPage(null));
+        }
+
+        //
+        private void GoToRedactProduct(object sender, RoutedEventArgs e)
+        {
+            Session.MainFrame.Navigate(new AddProductPage((sender as Button).DataContext as Product));
+        }
+
+        private void RemoveProduct(object sender, RoutedEventArgs e)
+        {
+            Product ProductForDeliting = (Product)lvProducts.SelectedItem;
+
+            if (ProductForDeliting == null)
+            {
+                MessageBox.Show("Не выбран ни один товар", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (MessageBox.Show($"Вы точно хотите удалить этот элемент?", "Внимание", 
+                MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    Trades.GetContext().Product.Remove(ProductForDeliting);
+                    Trades.GetContext().SaveChanges();
+                    MessageBox.Show("Данные удалены!");
+
+                    // Сброс параметров фильтрации и сортировки
+                    Session.MainFrame.Navigate(new CatalogPage());
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
         // Функция для фильтрации и сортировки товаров
         private void filterProducts()
         {
@@ -105,18 +189,19 @@ namespace TestExam.Windows
             // Поиск
             if (string.IsNullOrEmpty(searchBox.Text))
             {
-                _sortedProducts = _products;
+                _sortedOrders = _products;
             }
             else
             {
-                _sortedProducts = _products.Where(p => p.ProductName.ToLower().Contains(searchBox.Text.ToLower())).ToList();
+                _sortedOrders = _products.Where(p => p.ProductName.ToLower().Contains(searchBox.Text.ToLower()) 
+                || p.ProductDescription.ToLower().Contains(searchBox.Text.ToLower())).ToList();
             }
 
             // Фильтрация по категории
             if (cbCategory.SelectedItem != null && cbCategory.SelectedIndex != 0)
             {
                 Category category = cbCategory.SelectedItem as Category;
-                _sortedProducts = _sortedProducts.Where(p => p.Category == category).ToList();
+                _sortedOrders = _sortedOrders.Where(p => p.Category == category).ToList();
             }
 
             //Сортировка
@@ -125,25 +210,25 @@ namespace TestExam.Windows
             switch (selectedTag)
             {
                 case "NameAsc":
-                    _sortedProducts = _sortedProducts.OrderBy(a => a.ProductName).ToList();
+                    _sortedOrders = _sortedOrders.OrderBy(a => a.ProductName).ToList();
                     break;
                 case "NameDesc":
-                    _sortedProducts = _sortedProducts.OrderByDescending(a => a.ProductName).ToList();
+                    _sortedOrders = _sortedOrders.OrderByDescending(a => a.ProductName).ToList();
                     break;
                 case "PriceAsc":
-                    _sortedProducts = _sortedProducts.OrderBy(a => a.ProductCost).ToList();
+                    _sortedOrders = _sortedOrders.OrderBy(a => a.ProductCost).ToList();
                     break;
                 case "PriceDesc":
-                    _sortedProducts = _sortedProducts.OrderByDescending(a => a.ProductCost).ToList();
+                    _sortedOrders = _sortedOrders.OrderByDescending(a => a.ProductCost).ToList();
                     break;
                 case "None":
                 default:
-                    _sortedProducts = _sortedProducts.OrderBy(a => a.ProductArticleNumber).ToList();
+                    _sortedOrders = _sortedOrders.OrderBy(a => a.ProductArticleNumber).ToList();
                     break;
             }
 
-            lvProducts.ItemsSource = _sortedProducts;
-            CountEntries = $"Найдено {_sortedProducts.Count} из {maxCountEntries} записей"; // Обновляем свойство
+            lvProducts.ItemsSource = _sortedOrders;
+            CountEntries = $"Найдено {_sortedOrders.Count} из {maxCountEntries} записей"; // Обновляем свойство
             tbCountEntries.GetBindingExpression(TextBlock.TextProperty)?.UpdateTarget(); // Принудительно обновляем UI
         }
     }

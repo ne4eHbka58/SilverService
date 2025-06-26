@@ -11,7 +11,8 @@ namespace TestExam.Model
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.Text;
+
     public partial class Order
     {
         public Order()
@@ -26,9 +27,28 @@ namespace TestExam.Model
         public int OrderPickupPoint { get; set; }
         public int UserID { get; set; }
         public int OrderPickUpCode { get; set; }
+        public string OrderCode
+        {
+            get
+            {
+                return $"Код для получения: {OrderPickUpCode}";
+            }
+        }
     
         public virtual PickUpPoint PickUpPoint { get; set; }
         public virtual User User { get; set; }
         public virtual ICollection<OrderProduct> OrderProduct { get; set; }
+        public string OrderProducts
+        {
+            get
+            {
+                StringBuilder allProducts = new StringBuilder();
+                foreach (OrderProduct pr in this.OrderProduct)
+                {
+                    allProducts.Append($"{pr.Product.ProductName} {pr.CountProducts} шт.\n");
+                }
+                return allProducts.ToString();
+            }
+        }
     }
 }
