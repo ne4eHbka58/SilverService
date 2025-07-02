@@ -33,7 +33,7 @@ namespace TestExam.Windows
         }
 
         private List<Product> _products; 
-        private List<Product> _sortedOrders;
+        private List<Product> _sortedProducts;
         private readonly int maxCountEntries; // Максимальное количество записей в таблице
         private string _countEntries; 
         
@@ -189,11 +189,11 @@ namespace TestExam.Windows
             // Поиск
             if (string.IsNullOrEmpty(searchBox.Text))
             {
-                _sortedOrders = _products;
+                _sortedProducts = _products;
             }
             else
             {
-                _sortedOrders = _products.Where(p => p.ProductName.ToLower().Contains(searchBox.Text.ToLower()) 
+                _sortedProducts = _products.Where(p => p.ProductName.ToLower().Contains(searchBox.Text.ToLower()) 
                 || p.ProductDescription.ToLower().Contains(searchBox.Text.ToLower())).ToList();
             }
 
@@ -201,7 +201,7 @@ namespace TestExam.Windows
             if (cbCategory.SelectedItem != null && cbCategory.SelectedIndex != 0)
             {
                 Category category = cbCategory.SelectedItem as Category;
-                _sortedOrders = _sortedOrders.Where(p => p.Category == category).ToList();
+                _sortedProducts = _sortedProducts.Where(p => p.Category == category).ToList();
             }
 
             //Сортировка
@@ -210,25 +210,25 @@ namespace TestExam.Windows
             switch (selectedTag)
             {
                 case "NameAsc":
-                    _sortedOrders = _sortedOrders.OrderBy(a => a.ProductName).ToList();
+                    _sortedProducts = _sortedProducts.OrderBy(a => a.ProductName).ToList();
                     break;
                 case "NameDesc":
-                    _sortedOrders = _sortedOrders.OrderByDescending(a => a.ProductName).ToList();
+                    _sortedProducts = _sortedProducts.OrderByDescending(a => a.ProductName).ToList();
                     break;
                 case "PriceAsc":
-                    _sortedOrders = _sortedOrders.OrderBy(a => a.ProductCost).ToList();
+                    _sortedProducts = _sortedProducts.OrderBy(a => a.ProductCost).ToList();
                     break;
                 case "PriceDesc":
-                    _sortedOrders = _sortedOrders.OrderByDescending(a => a.ProductCost).ToList();
+                    _sortedProducts = _sortedProducts.OrderByDescending(a => a.ProductCost).ToList();
                     break;
                 case "None":
                 default:
-                    _sortedOrders = _sortedOrders.OrderBy(a => a.ProductArticleNumber).ToList();
+                    _sortedProducts = _sortedProducts.OrderBy(a => a.ProductArticleNumber).ToList();
                     break;
             }
 
-            lvProducts.ItemsSource = _sortedOrders;
-            CountEntries = $"Найдено {_sortedOrders.Count} из {maxCountEntries} записей"; // Обновляем свойство
+            lvProducts.ItemsSource = _sortedProducts;
+            CountEntries = $"Найдено {_sortedProducts.Count} из {maxCountEntries} записей"; // Обновляем свойство
             tbCountEntries.GetBindingExpression(TextBlock.TextProperty)?.UpdateTarget(); // Принудительно обновляем UI
         }
     }
